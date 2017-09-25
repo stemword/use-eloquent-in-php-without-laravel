@@ -1,0 +1,228 @@
+Setup Eloquent
+
+First, create a new folder in the public directory and name it “eloquent”. Now run the following composer command to install Eloquent.
+
+
+composer require illuminate/database
+
+Wait for composer to finish the installation.
+
+Create a new file and name it bootstrap.php. I will use this file to setup Eloquent. Now paste the following code in it.
+
+
+<?php
+
+
+
+require "vendor/autoload.php";
+
+use Illuminate\Database\Capsule\Manager as Capsule;
+
+
+
+$capsule = new Capsule;
+
+
+
+$capsule->addConnection([
+
+   "driver" => "mysql",
+
+   "host" =>"127.0.0.1",
+
+   "database" => "acl",
+
+   "username" => "root",
+
+   "password" => ""
+
+]);
+
+$capsule->setAsGlobal();
+
+$capsule->bootEloquent();
+
+
+The code starts with requiring the composer autoload class, then the required Eloquent Manager (Capsule), and finally created its instance. Through Capsule, I have set the database connection as global, and then booted Eloquent. After that, I created a new database on the localhost with the name “acl”.
+
+Create Table For Migration
+
+First create a new folder and name it “database”. Now, create a new file for the users table and name it “User.php”. Next, paste the following code in it:
+
+ 
+
+
+<?php
+
+require "../bootstrap.php";
+
+
+
+use Illuminate\Database\Capsule\Manager as Capsule;
+
+
+
+Capsule::schema()->create('users', function ($table) {
+
+       $table->increments('id');
+
+       $table->string('name');
+
+       $table->string('email')->unique();
+
+       $table->string('password');
+
+       $table->string('userimage')->nullable();
+
+       $table->string('api_key')->nullable()->unique();
+
+       $table->rememberToken();
+
+       $table->timestamps();
+
+   });
+
+The above code is similar to what I would write in Laravel. The difference is the schema() with reference from Capsule class.  I will now create table for the roles. For that, create a new file and name it “Todo.php”. Paste the following code in it:
+
+ 
+
+
+<?php
+
+require "../bootstrap.php";
+
+
+
+use Illuminate\Database\Capsule\Manager as Capsule;
+
+
+
+Capsule::schema()->create('todos', function ($table) {
+
+       $table->increments('id');
+
+       $table->string('todo');
+
+       $table->string('description');
+
+       $table->string('category');
+
+       $table->integer('user_id')->unsigned();
+
+       $table->timestamps();
+
+       $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+   });
+
+I will now migrate all the files. For that open your browser and head to  eloquent/database/user.php and eloquent/database/todo.php. If you see a blank page, the tables have been migrated successfully.
+
+Create Model Class With Eloquent
+
+I will now create model classes using Eloquent.
+
+Create a new folder and name it classes. Now open composer.json file and paste the following lines after require:
+
+
+
+"autoload": {
+ 
+       "classmap": [
+ 
+           "classes"
+ 
+       ]
+ 
+   }
+This will help me add classes folder as autoload. Now create a new file inside the classes folder and name it User.php.  Paste the following code:
+
+
+<?php
+
+use Illuminate\Database\Eloquent\Model as Eloquent;
+
+class User extends Eloquent
+
+{
+
+   /**
+   * The attributes that are mass assignable.
+   *
+   * @var array
+   */
+
+   protected $fillable = [
+
+       'name', 'email', 'password','userimage'
+
+   ];
+
+   /**
+   * The attributes that should be hidden for arrays.
+   *
+   * @var array
+   */
+
+   protected $hidden = [
+
+       'password', 'remember_token',
+
+   ];
+
+   /*
+   * Get Todo of User
+   *
+   */
+
+   public function todo()
+
+   {
+       return $this->hasMany('Todo');
+
+   }
+
+ }
+
+Next, create a new file, name it Todo.php and paste the following code:
+
+
+<?php
+
+
+
+use Illuminate\Database\Eloquent\Model as Eloquent;
+
+
+
+class Todo extends Eloquent
+
+{
+
+   protected $fillable = ['todo','category','description'];
+
+}
+
+All the classes are now in place and I could go ahead with the testing.
+
+Test the PHP Code
+
+I will now create a new file at the root and name it index.php.  Open this file and paste the following code in it:
+
+
+<?php
+
+require "bootstrap.php";
+
+$user = User::Create([    'name' => "Ahmed Khan",    'email' => "ahmed.khan@lbs.com",    'password' => password_hash("ahmedkhan",PASSWORD_BCRYPT), ]);
+
+print_r($user->todo()->create([
+
+   'todo' => "Working with Eloquent Without PHP",
+
+   'category' => "eloquent",
+
+   'description' => "Testing the work using eloquent without laravel"
+
+   ]));
+
+When you execute this file, you will see the following output:
