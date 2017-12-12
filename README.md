@@ -1,5 +1,6 @@
 # use-eloquent-in-php-without-laravel
 Use eloquent in php without laravel
+https://medium.com/@kshitij206/use-eloquent-without-laravel-7e1c73d79977
 Video Tutorial is here :https://youtu.be/gK3YeU1rWDQ
 
 Source Code : https://github.com/stemword/use-eloquent-in-php-without-laravel
